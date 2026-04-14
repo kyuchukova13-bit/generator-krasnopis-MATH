@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Комбиниран лист</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        :root {
+            /* Променливи за фината настройка на цифрите */
+            --char-offset-x: 6px; 
+            --char-offset-y: 2px;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 340px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto; flex-shrink: 0;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #1565c0; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #90caf9; padding-bottom: 10px; margin-top: 10px;
+        }
+
+        .auto-gen-control {
+            background: #f0f8ff; padding: 12px; border-radius: 8px; border: 1px solid #90caf9; margin-bottom: 15px;
+        }
+        .auto-gen-control label { 
+            font-size: 0.9rem; color: #0d47a1; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .auto-gen-control select {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 15px; font-family: inherit; font-size: 14px;
+        }
+        .auto-gen-control input[type="range"] {
+            width: 100%; margin-bottom: 15px; cursor: pointer;
+        }
+        
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #333; }
+        
+        .generate-btn {
+            padding: 12px; background: #1976d2; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #1565c0; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 5px;
+        }
+
+        /* Глобални настройки за брандиране */
+        .branding-control {
+            background: #fff3e0; padding: 12px; border-radius: 8px; border: 1px solid #ffcc80; margin-bottom: 15px;
+        }
+        .branding-control label {
+            font-size: 0.85rem; color: #e65100; font-weight: bold; display: block; margin-bottom: 3px;
+        }
+        .brand-input {
+            width: 100%; height: 28px; border: 1px solid #ccc; border-radius: 4px; padding: 0 8px; font-size: 13px; margin-bottom: 8px; box-sizing: border-box;
+        }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        /* КОМБИНИРАН ХЕДЪР */
+        .paper-header { 
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 15px; font-size: 14px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; 
+        }
+        .brand-output-school { font-size: 18px; color: #1a237e; font-weight: bold; line-height: 1.2; margin-bottom: 4px;}
+        .brand-output-teacher { font-size: 13px; color: #555; font-weight: bold; }
+
+        .worksheet-title {
+            text-align: center; font-size: 24px; color: #1a237e; margin: 0 0 10px 0; text-transform: uppercase;
+        }
+        .student-name-line {
+            text-align: center; font-size: 15px; margin-bottom: 20px; color: #333;
+        }
+
+        /* ДИЗАЙН НА ЗАДАЧИТЕ */
+        #blocks-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; 
+        }
+
+        .block-box { display: flex; flex-direction: column; }
+        .block-title {
+            font-size: 16px; font-weight: bold; color: #e65100; 
+            border-left: 5px solid #1976d2; padding-left: 10px; margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        /* Цялостни мрежи за Блок 1 и Блок 2 */
+        .continuous-grid {
+            width: 100%; 
+            background-image: linear-gradient(to right, #81d4fa 1px, transparent 1px), linear-gradient(to bottom, #81d4fa 1px, transparent 1px);
+            background-size: 35px 35px; border: 1px solid #81d4fa; position: relative; overflow: hidden;
+        }
+        
+        /* 3. Блок: Текстови задачи */
+        .problem-text { font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.4; margin-bottom: 8px; font-weight: 500;}
+        .problem-calc-grid {
+            width: 100%; height: 36px; /* Намалено на 1 ред (35px + 1px border) */
+            background-image: linear-gradient(to right, #81d4fa 1px, transparent 1px), linear-gradient(to bottom, #81d4fa 1px, transparent 1px);
+            background-size: 35px 35px; border: 1px solid #81d4fa; margin-bottom: 8px; position: relative;
+        }
+        .problem-answer-line {
+            width: 100%; height: 35px; border-bottom: 2px solid #90caf9; position: relative;
+        }
+        .ans-text-output { font-family: 'BoyanMaga', cursive; font-size: 24px; color: #777; opacity: 0.8; position: absolute; bottom: 2px; left: 10px;}
+
+        /* СИСТЕМА ЗА ОЦЕНКА */
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; border-top: 2px dashed #f0f0f0; }
+        .eval-text { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        
+        .emoji-scale { display: flex; justify-content: center; gap: 50px; }
+        .emoji-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .emoji-icon { font-size: 35px; line-height: 1; }
+        .emoji-label { font-size: 11px; color: #777; font-weight: bold; }
+        .tick-box { width: 18px; height: 18px; border: 2px solid #999; border-radius: 4px; margin-top: 3px; background: white;}
+
+        /* Помощни класове */
+        .grid-char { 
+            position: absolute; width: 35px; text-align: center; font-family: 'BoyanMaga', cursive; 
+            font-size: 30px; color: #1a237e; line-height: 1; pointer-events: none; 
+        }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 15mm; width: 210mm; height: 297mm; }
+        }
+    </style>
+</head>
+<body onload="updateBranding()">
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">🏷️ БРАНДИРАНЕ</div>
+        <div class="branding-control">
+            <label>Име на училище:</label>
+            <input type="text" id="brand-school-input" class="brand-input" placeholder="напр. ОУ 'Васил Левски'" oninput="updateBranding()">
+            
+            <label>Име на учител:</label>
+            <input type="text" id="brand-teacher-input" class="brand-input" placeholder="напр. г-жа Дочка Кючукова" oninput="updateBranding()">
+            
+            <label style="margin-top: 10px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="checkbox" id="auto-date" onchange="updateBranding()"> Сложи днешна дата
+            </label>
+        </div>
+
+        <div class="tool-header">🎛️ ФИНА НАСТРОЙКА</div>
+        <div class="auto-gen-control">
+            <label>Наляво ⬅️ ➡️ Надясно</label>
+            <input type="range" id="adj-x" min="-10" max="20" value="6" oninput="updateOffsets()">
+            
+            <label>Нагоре ⬆️ ⬇️ Надолу</label>
+            <input type="range" id="adj-y" min="-10" max="15" value="2" oninput="updateOffsets()">
+            <div style="font-size: 11px; color: #777; text-align: center;">Мести плъзгачите, за да центрираш цифрите идеално в мрежата.</div>
+        </div>
+
+        <div class="tool-header">📑 КОМБИНИРАН ЛИСТ</div>
+        <div class="auto-gen-control">
+            <label>Ниво (числа до):</label>
+            <select id="gen-range">
+                <option value="10">До 10</option>
+                <option value="20" selected>До 20</option>
+                <option value="100">До 100</option>
+            </select>
+            
+            <label>Изрази:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="gen-noparen" checked> Без скоби</label>
+                <label><input type="checkbox" id="gen-paren"> Със скоби</label>
+            </div>
+            
+            <button class="generate-btn" onclick="generateCombinedSheet()">⚡ ГЕНЕРИРАЙ КОМБИНИРАН ЛИСТ</button>
+        </div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            
+            <header class="paper-header">
+                <div>
+                    <div id="brand-school-output" class="brand-output-school">Училище: _________________</div>
+                    <div id="brand-teacher-output" class="brand-output-teacher">Учител: ____________</div>
+                </div>
+                <div style="font-size: 15px;">📅 <b>Дата:</b> <span id="date-output">______________</span></div>
+            </header>
+
+            <h1 class="worksheet-title">Работен лист по математика</h1>
+            <div class="student-name-line">
+                ✍️ <b>Ученик:</b> ____________________________________________________
+            </div>
+
+            <div id="blocks-container">
+                </div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Отбележи с тикче (✔) как се справи със задачите:</div>
+                <div class="emoji-scale">
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤩</span>
+                        <span class="emoji-label">Беше ми лесно!</span>
+                        <div class="tick-box"></div>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🙂</span>
+                        <span class="emoji-label">Справих се добре.</span>
+                        <div class="tick-box"></div>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤔</span>
+                        <span class="emoji-label">Трябва ми упражнение.</span>
+                        <div class="tick-box"></div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Функция за жива настройка на цифрите
+        function updateOffsets() {
+            const x = document.getElementById('adj-x').value;
+            const y = document.getElementById('adj-y').value;
+            document.documentElement.style.setProperty('--char-offset-x', x + 'px');
+            document.documentElement.style.setProperty('--char-offset-y', y + 'px');
+        }
+
+        function updateBranding() {
+            const tInput = document.getElementById('brand-teacher-input').value.trim();
+            const sInput = document.getElementById('brand-school-input').value.trim();
+            const autoDate = document.getElementById('auto-date').checked;
+
+            document.getElementById('brand-teacher-output').innerText = tInput ? `Учител: ${tInput}` : 'Учител: ____________';
+            document.getElementById('brand-school-output').innerText = sInput ? sInput : 'Училище: _________________';
+            
+            if(autoDate) {
+                const today = new Date();
+                const dateString = today.toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                document.getElementById('date-output').innerText = dateString;
+            } else {
+                document.getElementById('date-output').innerText = '______________';
+            }
+        }
+
+        const items = ["топки", "колички", "тетрадки", "книжки", "ябълки", "круши", "моливи", "бонбони"];
+        const tplAdd = ["В градината имало {A} {item}. Децата донесли още {B}. Колко {item} има общо сега?", "На масата лежали {A} червени и {B} зелени {item}. Колко са всичките {item}?"];
+        const tplSub = ["В кутията имало общо {A} {item}. Учениците взели {B} от тях. Колко {item} са останали?", "На бюрото имало {A} {item}. След малко прибрали {B} от тях в шкафа. Колко {item} са останали?"];
+
+        function generateCombinedSheet() {
+            const range = parseInt(document.getElementById('gen-range').value);
+            const container = document.getElementById('blocks-container');
+            container.innerHTML = ''; 
+
+            // БЛОК 1: Цялостна мрежа с 2 колонки
+            const b1Div = document.createElement('div');
+            b1Div.className = 'block-box';
+            
+            b1Div.innerHTML = `
+                <div class="block-title">Блок 1: Смятане</div>
+                <div class="continuous-grid" id="grid-b1" style="height: 176px;"></div>
+            `;
+            container.appendChild(b1Div);
+            
+            const gridB1 = document.getElementById('grid-b1');
+
+            for(let i=0; i<6; i++) {
+                let A, B, isAdd = Math.random() > 0.5;
+                if(isAdd) { A = Math.floor(Math.random() * (range-3))+2; B = Math.floor(Math.random() * (range-A-1))+2; }
+                else { A = Math.floor(Math.random()*(range-5))+5; B=Math.floor(Math.random()*(A-2))+2; }
+                
+                let isRightCol = (i % 2 !== 0); // Втората колонка
+                let rowIndex = Math.floor(i / 2) * 2; // Редове 0, 2, 4
+                let vOffset = rowIndex * 35; 
+                
+                // Колонка 1 започва от квадратче 0. Колонка 2 от квадратче 10.
+                let colPos = isRightCol ? 10 : 0; 
+                
+                for(let char of `${A}${isAdd?'+':'-'}${B}=`) { 
+                    createCharSpan(char, colPos, gridB1, vOffset); 
+                    colPos++; 
+                }
+            }
+
+            // БЛОК 2: Числови изрази
+            const useNoParen = document.getElementById('gen-noparen').checked;
+            const useParen = document.getElementById('gen-paren').checked;
+            
+            if(useNoParen || useParen) {
+                const b2Div = document.createElement('div');
+                b2Div.className = 'block-box';
+                b2Div.innerHTML = `
+                    <div class="block-title">Блок 2: Числови изрази</div>
+                    <div class="continuous-grid" id="grid-b2" style="height: 176px;"></div>
+                `;
+                container.appendChild(b2Div);
+                
+                const gridB2 = document.getElementById('grid-b2');
+
+                for(let i=0; i<3; i++) {
+                    let expr = ""; let valid = false;
+                    while(!valid) {
+                        let A = Math.floor(Math.random()*range)+1; let B=Math.floor(Math.random()*range)+1; let C=Math.floor(Math.random()*range)+1;
+                        let pats = []; if(useNoParen) pats.push(0,1); if(useParen) pats.push(2,3);
+                        let p=pats[Math.floor(Math.random()*pats.length)];
+                        if(p==0 && A+B+C <= range) { expr=`${A}+${B}+${C}=`; valid=true; } 
+                        else if(p==1 && A+B<=range && A+B-C>=0) { expr=`${A}+${B}-${C}=`; valid=true; }
+                        else if(p==2 && B+C<=range && A-(B+C)>=0) { expr=`${A}-(${B}+${C})=`; valid=true; }
+                        else if(p==3 && B-C>=0 && A+(B-C)<=range) { expr=`${A}+(${B}-${C})=`; valid=true; }
+                    }
+                    
+                    let vOffset = (i * 2) * 35; // Редове 0, 2, 4
+                    let colPos = 0; // Започват от първото квадратче
+                    for(let char of expr.replace(/\s+/g, '')) { 
+                        createCharSpan(char, colPos, gridB2, vOffset); 
+                        colPos++; 
+                    }
+                }
+            }
+
+            // БЛОК 3: Текстови задачи
+            const b3Div = document.createElement('div');
+            b3Div.className = 'block-box';
+            b3Div.innerHTML = `<div class="block-title">Блок 3: Текстови задачи</div>`;
+            
+            for(let i=0; i<2; i++) {
+                let text="", item=items[Math.floor(Math.random()*items.length)];
+                let A, B, isAdd = i==0; 
+                if(isAdd) { A = Math.floor(Math.random()*(range-3))+2; B=Math.floor(Math.random()*(range-A-1))+2; text=tplAdd[Math.floor(Math.random()*tplAdd.length)].replace("{A}", A).replace("{B}",B).replaceAll("{item}", item); }
+                else { A=Math.floor(Math.random()*(range-5))+5; B=Math.floor(Math.random()*(A-2))+2; text=tplSub[Math.floor(Math.random()*tplSub.length)].replace("{A}", A).replace("{B}",B).replaceAll("{item}", item); }
+
+                const probDiv = document.createElement('div');
+                probDiv.style.marginBottom = '10px';
+                probDiv.innerHTML = `
+                    <div class="problem-text">${i+1}. ${text}</div>
+                    <div class="problem-calc-grid"></div>
+                    <div class="problem-answer-line"><span class="ans-text-output">Отговор: ................. ${item}</span></div>
+                `;
+                b3Div.appendChild(probDiv);
+            }
+            container.appendChild(b3Div);
+        }
+
+        function createCharSpan(char, colIndex, gridNode, vOffset) {
+            const span = document.createElement('span');
+            span.className = 'grid-char';
+            span.innerText = char;
+            // Използваме CSS променливите за реално-времево позициониране
+            span.style.left = `calc(${colIndex * 35}px + var(--char-offset-x))`;
+            span.style.top = `calc(${vOffset}px + var(--char-offset-y))`;
+            gridNode.appendChild(span);
+        }
+
+        container = document.getElementById('blocks-container');
+        container.innerHTML = '<div style="font-size: 15px; color: #777; font-style: italic; text-align: center; margin-top: 50px;">Избери настройки вляво и натисни "ГЕНЕРИРАЙ"...</div>';
+
+    </script>
+</body>
+</html>

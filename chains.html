@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Гъсенички (Пълна версия)</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 320px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #4caf50; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #e8f5e9; padding-bottom: 10px;
+        }
+
+        .auto-gen-control {
+            background: #f1f8e9; padding: 12px; border-radius: 8px; border: 1px solid #81c784; margin-bottom: 15px;
+        }
+        .auto-gen-control label { 
+            font-size: 0.9rem; color: #2e7d32; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .auto-gen-control select {
+            width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 10px; font-family: inherit;
+        }
+        
+        .checkbox-group { display: flex; gap: 15px; margin-bottom: 15px; font-size: 14px; color: #333; }
+        
+        .generate-btn {
+            padding: 12px; background: #4caf50; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #43a047; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 15px;
+        }
+
+        .input-group { margin-bottom: 10px; }
+        .input-group label { font-size: 12px; color: #777; font-weight: bold; display: block; margin-bottom: 3px; }
+        .task-input {
+            width: 100%; height: 32px; border: 2px solid #dcdfe6; border-radius: 6px;
+            padding: 0 10px; font-size: 14px; outline: none; font-family: monospace; box-sizing: border-box;
+        }
+        .task-input:focus { border-color: #4caf50; }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .worksheet-title {
+            text-align: center; font-size: 24px; color: #2e7d32; margin: 0 0 15px 0; text-transform: uppercase;
+        }
+
+        header { 
+            margin-bottom: 25px; font-size: 15px; 
+            display: flex; gap: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; 
+        }
+
+        /* ДИЗАЙН НА ГЪСЕНИЧКИТЕ */
+        #caterpillars-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 26px; /* Оптимално разстояние за 8 реда */
+        }
+
+        .cat-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 3px solid #81c784;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'BoyanMaga', cursive;
+            font-size: 32px;
+            color: #1a237e;
+            background-color: #ffffff;
+            box-shadow: inset 0 0 8px rgba(129, 199, 132, 0.2);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .circle.head {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .arrow-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 63px; /* Леко стеснени, за да се съберат перфектно 6 кръгчета */
+            position: relative;
+        }
+
+        .op-text {
+            font-family: 'BoyanMaga', cursive;
+            font-size: 22px;
+            color: #e65100;
+            margin-bottom: -5px;
+        }
+
+        .arrow-sym {
+            font-size: 24px;
+            color: #81c784;
+        }
+
+        /* НОВА СИСТЕМА ЗА ОЦЕНКА */
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; border-top: 2px dashed #f0f0f0; }
+        .eval-text { font-size: 15px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        
+        .emoji-scale { 
+            display: flex; justify-content: center; gap: 40px; 
+        }
+        .emoji-item {
+            display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
+        }
+        .emoji-icon { font-size: 40px; line-height: 1; }
+        .emoji-label { font-size: 12px; color: #777; font-weight: bold; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 15mm; width: 210mm; height: 297mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">🐛 АВТО-ГЪСЕНИЧКИ</div>
+        <div class="auto-gen-control">
+            <label>Числа до:</label>
+            <select id="gen-range">
+                <option value="10">До 10</option>
+                <option value="20" selected>До 20</option>
+                <option value="100">До 100</option>
+            </select>
+            
+            <label>Действия:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="gen-add" checked> Събиране (+)</label>
+                <label><input type="checkbox" id="gen-sub" checked> Изваждане (-)</label>
+            </div>
+            
+            <button class="generate-btn" onclick="generateCaterpillars()">⚡ ЗАРЕДИ ЗАДАЧИ</button>
+        </div>
+
+        <div style="font-size: 13px; color: #4caf50; margin-bottom: 10px; font-weight: bold;">📝 Ръчна корекция (6 числа):</div>
+        <div id="inputs-container"></div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            <h1 class="worksheet-title">Математически верижки</h1>
+            <header>
+                <span style="flex:1;">✍️ <b>Ученик:</b> _________________________________</span>
+                <span>📅 <b>Дата:</b> ______________</span>
+            </header>
+
+            <div id="caterpillars-container">
+                </div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Огради как се справи със задачите:</div>
+                <div class="emoji-scale">
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤩</span>
+                        <span class="emoji-label">Беше ми лесно!</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🙂</span>
+                        <span class="emoji-label">Справих се добре.</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤔</span>
+                        <span class="emoji-label">Трябва ми упражнение.</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const totalRows = 8; // Вече са 8 реда!
+        const numOperations = 5; // Вече са 5 действия (общо 6 кръгчета)!
+        
+        const inputsContainer = document.getElementById('inputs-container');
+        
+        for (let i = 0; i < totalRows; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <label>Ред ${i + 1}</label>
+                <input type="text" class="task-input" id="input-${i}" placeholder="напр. 5; +3; -2; +4; -1; +2" oninput="renderPaper()">
+            `;
+            inputsContainer.appendChild(div);
+        }
+
+        function generateCaterpillars() {
+            const range = parseInt(document.getElementById('gen-range').value);
+            const useAdd = document.getElementById('gen-add').checked;
+            const useSub = document.getElementById('gen-sub').checked;
+
+            if (!useAdd && !useSub) {
+                alert("Избери поне едно действие!");
+                return;
+            }
+
+            for (let i = 0; i < totalRows; i++) {
+                let currentVal = Math.floor(Math.random() * (range - 1)) + 1; 
+                let stringParts = [currentVal];
+
+                for (let j = 0; j < numOperations; j++) {
+                    let possibleOps = [];
+                    if (useAdd && currentVal < range) possibleOps.push('+');
+                    if (useSub && currentVal > 0) possibleOps.push('-');
+                    
+                    if (possibleOps.length === 0) possibleOps.push('+'); 
+
+                    let op = possibleOps[Math.floor(Math.random() * possibleOps.length)];
+                    let operand = 0;
+
+                    if (op === '+') {
+                        let maxAdd = range - currentVal;
+                        operand = Math.floor(Math.random() * maxAdd) + 1;
+                        currentVal += operand;
+                    } else {
+                        operand = Math.floor(Math.random() * currentVal) + 1;
+                        currentVal -= operand;
+                    }
+
+                    stringParts.push(`${op}${operand}`);
+                }
+
+                document.getElementById(`input-${i}`).value = stringParts.join('; ');
+            }
+
+            renderPaper();
+        }
+
+        function renderPaper() {
+            const container = document.getElementById('caterpillars-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < totalRows; i++) {
+                const inputText = document.getElementById(`input-${i}`).value.trim();
+                if (!inputText) continue;
+
+                const parts = inputText.split(';');
+                if (parts.length === 0) continue;
+
+                const row = document.createElement('div');
+                row.className = 'cat-row';
+
+                row.innerHTML += `<div class="circle head">${parts[0].trim()}</div>`;
+
+                for (let j = 1; j < parts.length; j++) {
+                    const opText = parts[j].trim();
+                    if (!opText) continue;
+
+                    row.innerHTML += `
+                        <div class="arrow-box">
+                            <span class="op-text">${opText}</span>
+                            <span class="arrow-sym">➞</span>
+                        </div>
+                        <div class="circle"></div>
+                    `;
+                }
+
+                container.appendChild(row);
+            }
+        }
+
+        generateCaterpillars();
+
+    </script>
+</body>
+</html>

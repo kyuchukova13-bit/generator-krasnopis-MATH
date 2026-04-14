@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Числови Пирамиди</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 320px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #1976d2; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #bbdefb; padding-bottom: 10px;
+        }
+
+        .auto-gen-control {
+            background: #f0f8ff; padding: 12px; border-radius: 8px; border: 1px solid #90caf9; margin-bottom: 15px;
+        }
+        .auto-gen-control label { 
+            font-size: 0.9rem; color: #1565c0; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .auto-gen-control select {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 15px; font-family: inherit; font-size: 14px;
+        }
+        
+        .generate-btn {
+            padding: 12px; background: #1e88e5; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #1976d2; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 15px;
+        }
+
+        .helper-text {
+            font-size: 13px; color: #555; text-align: center; margin-top: 15px;
+            padding: 10px; background: #fff3e0; border-radius: 6px; border: 1px solid #ffe0b2;
+        }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .worksheet-title {
+            text-align: center; font-size: 24px; color: #1565c0; margin: 0 0 5px 0; text-transform: uppercase;
+        }
+        .worksheet-subtitle {
+            text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; font-style: italic;
+        }
+
+        header { 
+            margin-bottom: 25px; font-size: 15px; 
+            display: flex; gap: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; 
+        }
+
+        /* ДИЗАЙН НА ПИРАМИДИТЕ */
+        #pyramids-container {
+            flex-grow: 1;
+            display: grid;
+            gap: 25px 20px; /* Леко намалено вертикално разстояние за по-добро събиране */
+            justify-items: center;
+            align-content: flex-start;
+        }
+
+        /* Класове за различните решетки според броя пирамиди */
+        .grid-l3 { grid-template-columns: repeat(4, 1fr); } /* 20 пирамиди (5 реда) */
+        .grid-l4 { grid-template-columns: repeat(3, 1fr); gap: 35px 20px; } /* 12 пирамиди (4 реда) */
+
+        .pyramid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pyr-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: -2px; /* Припокриване на рамките вертикално */
+        }
+
+        .brick {
+            width: 46px;
+            height: 36px;
+            border: 2px solid #64b5f6;
+            margin: 0 -1px; /* Припокриване на рамките хоризонтално */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'BoyanMaga', cursive;
+            font-size: 24px;
+            color: #0d47a1;
+            background-color: #ffffff;
+            outline: none;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .brick.given {
+            background-color: #e3f2fd;
+            font-weight: bold;
+        }
+
+        .brick:focus {
+            background-color: #fff9c4;
+            border-color: #fbc02d;
+            z-index: 5;
+        }
+
+        /* СИСТЕМА ЗА ОЦЕНКА */
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; border-top: 2px dashed #f0f0f0; }
+        .eval-text { font-size: 15px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        
+        .emoji-scale { display: flex; justify-content: center; gap: 40px; }
+        .emoji-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .emoji-icon { font-size: 40px; line-height: 1; }
+        .emoji-label { font-size: 12px; color: #777; font-weight: bold; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 15mm; width: 210mm; height: 297mm; }
+            .brick { border: 1px solid #64b5f6; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">🔺 АВТО-ПИРАМИДИ</div>
+        <div class="auto-gen-control">
+            <label>Трудност (Етажи):</label>
+            <select id="gen-levels" onchange="generateWorksheet()">
+                <option value="3">3 етажа (20 пирамиди)</option>
+                <option value="4">4 етажа (12 пирамиди)</option>
+            </select>
+
+            <label>Числа на върха до:</label>
+            <select id="gen-range">
+                <option value="20">До 20</option>
+                <option value="100" selected>До 100</option>
+            </select>
+            
+            <button class="generate-btn" onclick="generateWorksheet()">⚡ ЗАРЕДИ ЗАДАЧИ</button>
+        </div>
+
+        <div class="helper-text">
+            💡 <b>Трик:</b> Можеш да кликнеш върху всяка празна (или пълна) тухличка на листа и да напишеш число от клавиатурата си, за да промениш задачата ръчно!
+        </div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            <h1 class="worksheet-title">Числови пирамиди</h1>
+            <div class="worksheet-subtitle">Събери двете съседни тухлички, за да откриеш числото над тях.</div>
+            
+            <header>
+                <span style="flex:1;">✍️ <b>Ученик:</b> _________________________________</span>
+                <span>📅 <b>Дата:</b> ______________</span>
+            </header>
+
+            <div id="pyramids-container" class="grid-l3">
+                </div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Огради как се справи със задачите:</div>
+                <div class="emoji-scale">
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤩</span>
+                        <span class="emoji-label">Беше ми лесно!</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🙂</span>
+                        <span class="emoji-label">Справих се добре.</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤔</span>
+                        <span class="emoji-label">Трябва ми упражнение.</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        function generateFullPyramid(L, maxPeak) {
+            let base = [];
+            let peak = maxPeak + 1;
+            let maxBaseVal = (maxPeak <= 20) ? (L === 3 ? 8 : 4) : 30; 
+            let levelsArr = [];
+
+            while(peak > maxPeak || peak < 5) {
+                base = [];
+                for(let i = 0; i < L; i++) {
+                    base.push(Math.floor(Math.random() * maxBaseVal) + 1);
+                }
+                
+                levelsArr = [ [...base] ];
+                let currentLevel = base;
+                
+                while(currentLevel.length > 1) {
+                    let nextLevel = [];
+                    for(let i = 0; i < currentLevel.length - 1; i++) {
+                        nextLevel.push(currentLevel[i] + currentLevel[i+1]);
+                    }
+                    levelsArr.push([...nextLevel]);
+                    currentLevel = nextLevel;
+                }
+                peak = levelsArr[levelsArr.length - 1][0];
+            }
+            return levelsArr.reverse();
+        }
+
+        function getSolvableMask(L) {
+            if(L === 3) {
+                const masks = [
+                    [[2,0], [2,1], [2,2]], 
+                    [[0,0], [1,0], [2,2]], 
+                    [[0,0], [1,1], [2,0]], 
+                    [[1,0], [1,1], [2,1]], 
+                    [[2,0], [2,1], [0,0]], 
+                    [[1,0], [2,1], [2,2]]  
+                ];
+                return masks[Math.floor(Math.random() * masks.length)];
+            } else {
+                const masks = [
+                    [[3,0], [3,1], [3,2], [3,3]],  
+                    [[0,0], [1,0], [2,2], [3,0]],  
+                    [[0,0], [1,1], [2,0], [3,3]],  
+                    [[1,0], [1,1], [3,1], [3,2]],  
+                    [[1,0], [2,0], [3,0], [3,3]],  
+                    [[1,1], [2,2], [3,3], [3,0]]   
+                ];
+                return masks[Math.floor(Math.random() * masks.length)];
+            }
+        }
+
+        function generateWorksheet() {
+            const container = document.getElementById('pyramids-container');
+            const levels = parseInt(document.getElementById('gen-levels').value);
+            const range = parseInt(document.getElementById('gen-range').value);
+            
+            container.innerHTML = '';
+            
+            // ТУК СА ПРОМЕНИТЕ: 20 пирамиди (5 реда) за 3 етажа, 12 пирамиди (4 реда) за 4 етажа
+            let numPyramids = (levels === 3) ? 20 : 12;
+            container.className = (levels === 3) ? 'grid-l3' : 'grid-l4';
+
+            for (let p = 0; p < numPyramids; p++) {
+                const fullPyramid = generateFullPyramid(levels, range);
+                const mask = getSolvableMask(levels);
+                
+                const pyrDiv = document.createElement('div');
+                pyrDiv.className = 'pyramid';
+
+                for (let r = 0; r < levels; r++) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'pyr-row';
+
+                    for (let c = 0; c < fullPyramid[r].length; c++) {
+                        const isGiven = mask.some(coord => coord[0] === r && coord[1] === c);
+                        const val = isGiven ? fullPyramid[r][c] : '';
+                        
+                        const brickHTML = `<div class="brick ${isGiven ? 'given' : ''}" contenteditable="true">${val}</div>`;
+                        rowDiv.innerHTML += brickHTML;
+                    }
+                    pyrDiv.appendChild(rowDiv);
+                }
+                container.appendChild(pyrDiv);
+            }
+        }
+
+        generateWorksheet();
+    </script>
+</body>
+</html>

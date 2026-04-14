@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Умен Генератор</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 320px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #4facfe; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #e3f2fd; padding-bottom: 10px;
+        }
+
+        .align-control, .auto-gen-control {
+            background: #f0f8ff; padding: 12px; border-radius: 8px; border: 1px solid #4facfe; margin-bottom: 15px;
+        }
+        .align-control label, .auto-gen-control label { 
+            font-size: 0.9rem; color: #1a237e; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .align-control input { width: 100%; cursor: pointer; }
+
+        /* СТИЛОВЕ ЗА АВТОГЕНЕРАТОРА */
+        .auto-gen-control select {
+            width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 10px; font-family: inherit;
+        }
+        .checkbox-group { display: flex; gap: 15px; margin-bottom: 10px; font-size: 14px; color: #333; }
+        
+        .generate-btn {
+            padding: 10px; background: #4caf50; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #43a047; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 15px;
+        }
+
+        .input-group { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .input-group label { font-size: 12px; color: #777; width: 40px; font-weight: bold; }
+        .task-input {
+            flex-grow: 1; height: 30px; border: 2px solid #dcdfe6; border-radius: 6px;
+            padding: 0 10px; font-size: 15px; outline: none; font-family: monospace;
+        }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 12mm 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .worksheet-title {
+            text-align: center; font-size: 22px; color: #333; margin: 0 0 10px 0; text-transform: uppercase;
+        }
+
+        header { 
+            margin-bottom: 15px; font-size: 14px; 
+            display: flex; gap: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; 
+        }
+
+        /* МРЕЖА */
+        .grid-page {
+            width: 666px; 
+            height: 841px; 
+            background-image: 
+                linear-gradient(to right, #81d4fa 1px, transparent 1px),
+                linear-gradient(to bottom, #81d4fa 1px, transparent 1px);
+            background-size: 35px 35px;
+            border: 1px solid #81d4fa;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-char {
+            position: absolute; width: 35px; text-align: center;
+            font-family: 'BoyanMaga', cursive; font-size: 30px; 
+            color: #1a237e; line-height: 1; pointer-events: none;
+        }
+
+        .student-trace { color: #b0bec5; opacity: 0.8; }
+
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; }
+        .eval-text { font-size: 14px; color: #555; font-style: italic; margin-bottom: 5px; }
+        .stars { font-size: 28px; color: #bdc3c7; letter-spacing: 5px; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 12mm 15mm; width: 210mm; height: 297mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">🤖 АВТОМАТИЧНИ ЗАДАЧИ</div>
+        <div class="auto-gen-control">
+            <label>Ниво (числа до):</label>
+            <select id="gen-range">
+                <option value="10">До 10</option>
+                <option value="20">До 20</option>
+                <option value="100">До 100</option>
+            </select>
+            
+            <label>Действия:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="gen-add" checked> + Събиране</label>
+                <label><input type="checkbox" id="gen-sub" checked> - Изваждане</label>
+            </div>
+            
+            <button class="generate-btn" onclick="generateRandomTasks()">⚡ ЗАРЕДИ ЗАДАЧИ</button>
+        </div>
+
+        <div class="tool-header">⚙️ РЪЧНА НАСТРОЙКА</div>
+        <div class="align-control" style="margin-bottom: 10px; padding: 8px;">
+            <label style="margin-bottom: 2px;">↕️ Изместване:</label>
+            <input type="range" min="-15" max="25" value="2" id="v-slider" oninput="syncAll()">
+        </div>
+        
+        <div id="inputs-container"></div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            <h1 class="worksheet-title">Работен лист по математика</h1>
+            <header>
+                <span style="flex:1;">✍️ <b>Ученик:</b> _________________________________</span>
+                <span>📅 <b>Дата:</b> ______________</span>
+            </header>
+
+            <div class="grid-page" id="grid-overlay"></div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Оцени се сам, като оцветиш звездичките:</div>
+                <div class="stars">☆☆☆☆☆☆</div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const totalWritableRows = 12; 
+        const inputsContainer = document.getElementById('inputs-container');
+        
+        // Генериране на 12-те полета
+        for (let i = 0; i < totalWritableRows; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `<label>Ред ${i + 1}</label><input type="text" class="task-input" placeholder="напр. 12+3=" oninput="syncAll()">`;
+            inputsContainer.appendChild(div);
+        }
+
+        // ЛОГИКА ЗА АВТОМАТИЧНО ГЕНЕРАРИНЕ НА ЗАДАЧИ
+        function generateRandomTasks() {
+            const range = parseInt(document.getElementById('gen-range').value);
+            const useAdd = document.getElementById('gen-add').checked;
+            const useSub = document.getElementById('gen-sub').checked;
+
+            if (!useAdd && !useSub) {
+                alert("Моля, избери поне едно математическо действие!");
+                return;
+            }
+
+            const ops = [];
+            if (useAdd) ops.push('+');
+            if (useSub) ops.push('-');
+
+            const inputs = document.querySelectorAll('.task-input');
+
+            inputs.forEach(input => {
+                const op = ops[Math.floor(Math.random() * ops.length)];
+                let a, b;
+
+                if (op === '+') {
+                    // Събиране: Сборът да не надвишава избраното число
+                    a = Math.floor(Math.random() * (range - 1)) + 1; // от 1 до (range-1)
+                    b = Math.floor(Math.random() * (range - a)) + 1; // от 1 до колкото остава до range
+                } else {
+                    // Изваждане: Умаляемото да е до избраното число, разликата да не е отрицателна
+                    a = Math.floor(Math.random() * range) + 1; // от 1 до range
+                    b = Math.floor(Math.random() * a) + 1;     // от 1 до a
+                }
+
+                input.value = `${a}${op}${b}=`;
+            });
+
+            // След като попълним полетата, извикваме функцията за рисуване върху мрежата
+            syncAll();
+        }
+
+        // ЛОГИКА ЗА РИСУВАНЕ ВЪРХУ МРЕЖАТА
+        function syncAll() {
+            const grid = document.getElementById('grid-overlay');
+            grid.innerHTML = '';
+            const inputs = document.querySelectorAll('.task-input');
+            const vOffset = parseInt(document.getElementById('v-slider').value);
+
+            inputs.forEach((input, index) => {
+                let text = input.value;
+                if (!text.trim()) return;
+                
+                // Премахваме излишните интервали, ако учителят е въвеждал ръчно "2 + 2 ="
+                text = text.replace(/\\s+/g, ''); 
+                
+                const chars = text.split('');
+                const rowIndex = index * 2; 
+
+                // Модел
+                let colPos = 0;
+                for(let char of chars) {
+                    if (colPos > 8) break;
+                    createCharSpan(char, colPos, rowIndex, vOffset, false, grid);
+                    colPos++;
+                }
+
+                // Повторение
+                let traceColPos = 10; 
+                for(let char of chars) {
+                    if (traceColPos > 18) break;
+                    createCharSpan(char, traceColPos, rowIndex, vOffset, true, grid);
+                    traceColPos++;
+                }
+            });
+        }
+
+        function createCharSpan(char, colIndex, rowIndex, vOffset, isTrace, gridNode) {
+            const span = document.createElement('span');
+            span.className = 'grid-char' + (isTrace ? ' student-trace' : '');
+            span.innerText = char;
+            span.style.left = (colIndex * 35) + 'px';
+            span.style.top = (rowIndex * 35 + vOffset) + 'px'; 
+            gridNode.appendChild(span);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Текстови Задачи</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 340px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto; flex-shrink: 0;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #8e44ad; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #e8daef; padding-bottom: 10px;
+        }
+
+        .auto-gen-control {
+            background: #f4ecf7; padding: 12px; border-radius: 8px; border: 1px solid #d2b4de; margin-bottom: 15px;
+        }
+        .auto-gen-control label { 
+            font-size: 0.9rem; color: #5b2c6f; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .auto-gen-control select {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 15px; font-family: inherit; font-size: 14px;
+        }
+        
+        .generate-btn {
+            padding: 12px; background: #9b59b6; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #8e44ad; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 15px;
+        }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { font-size: 12px; color: #777; font-weight: bold; display: block; margin-bottom: 3px; }
+        .task-textarea {
+            width: 100%; height: 65px; border: 2px solid #dcdfe6; border-radius: 6px;
+            padding: 8px; font-size: 13px; outline: none; font-family: inherit; box-sizing: border-box;
+            resize: none; line-height: 1.3;
+        }
+        .task-textarea:focus { border-color: #9b59b6; }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .worksheet-title {
+            text-align: center; font-size: 24px; color: #5b2c6f; margin: 0 0 20px 0; text-transform: uppercase;
+        }
+
+        header { 
+            margin-bottom: 25px; font-size: 15px; 
+            display: flex; gap: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; 
+        }
+
+        /* ДИЗАЙН НА ЗАДАЧИТЕ */
+        #problems-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; 
+        }
+
+        .problem-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .problem-text {
+            font-family: 'BoyanMaga', cursive;
+            font-size: 26px; /* Едър и четим ръкописен шрифт */
+            color: #1a237e;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            min-height: 60px; /* Резервира място дори ако задачата е кратка */
+        }
+
+        /* КВАДРАТНА МРЕЖА ЗА РЕШЕНИЕТО */
+        .solution-grid {
+            width: 666px; /* Точно 19 колонки */
+            height: 106px; /* Точно 3 реда по 35px + 1px рамка */
+            background-image: 
+                linear-gradient(to right, #81d4fa 1px, transparent 1px),
+                linear-gradient(to bottom, #81d4fa 1px, transparent 1px);
+            background-size: 35px 35px;
+            border: 1px solid #81d4fa;
+            position: relative;
+        }
+
+        /* СИСТЕМА ЗА ОЦЕНКА */
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; border-top: 2px dashed #f0f0f0; }
+        .eval-text { font-size: 15px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        
+        .emoji-scale { display: flex; justify-content: center; gap: 40px; }
+        .emoji-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .emoji-icon { font-size: 40px; line-height: 1; }
+        .emoji-label { font-size: 12px; color: #777; font-weight: bold; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 15mm; width: 210mm; height: 297mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">📖 АВТО-СЮЖЕТИ</div>
+        <div class="auto-gen-control">
+            <label>Ниво (числа до):</label>
+            <select id="gen-range">
+                <option value="10">До 10</option>
+                <option value="20" selected>До 20</option>
+                <option value="100">До 100</option>
+            </select>
+            
+            <button class="generate-btn" onclick="generateWordProblems()">⚡ ГЕНЕРИРАЙ ЗАДАЧИ</button>
+        </div>
+
+        <div style="font-size: 13px; color: #8e44ad; margin-bottom: 10px; font-weight: bold;">📝 Ръчна редакция на текста:</div>
+        <div id="inputs-container">
+            </div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            <h1 class="worksheet-title">Текстови задачи</h1>
+            
+            <header>
+                <span style="flex:1;">✍️ <b>Ученик:</b> _________________________________</span>
+                <span>📅 <b>Дата:</b> ______________</span>
+            </header>
+
+            <div id="problems-container">
+                </div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Огради как се справи със задачите:</div>
+                <div class="emoji-scale">
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤩</span>
+                        <span class="emoji-label">Беше ми лесно!</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🙂</span>
+                        <span class="emoji-label">Справих се добре.</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤔</span>
+                        <span class="emoji-label">Трябва ми упражнение.</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const totalProblems = 4; // 4 задачи пасват идеално на А4 с 3 реда мрежа за всяка
+        const inputsContainer = document.getElementById('inputs-container');
+        
+        // Създаване на полетата за редакция
+        for (let i = 0; i < totalProblems; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <label>Задача ${i + 1}</label>
+                <textarea class="task-textarea" id="input-${i}" oninput="renderPaper()"></textarea>
+            `;
+            inputsContainer.appendChild(div);
+        }
+
+        // Банка с думи за интелигентно генериране (използваме думи, които в мн.ч. са лесни граматически)
+        const items = ["топки", "колички", "тетрадки", "книжки", "ябълки", "круши", "картички", "сливи"];
+        
+        const templatesAdd = [
+            "В градината имало {A} {item}. Децата донесли още {B}. Колко {item} има общо сега?",
+            "Мими получила {A} {item} от мама и {B} {item} от тате. Колко {item} има Мими общо?",
+            "В магазина докарали {A} червени и {B} зелени {item}. Колко са всичките {item}?",
+            "На бюрото лежали {A} {item}. Учителката оставила още {B}. Колко {item} станали?"
+        ];
+
+        const templatesSub = [
+            "В кутията имало общо {A} {item}. Учениците взели {B} от тях. Колко {item} са останали?",
+            "На масата имало {A} {item}. След малко прибрали {B} от тях в шкафа. Колко {item} са останали?",
+            "За празника купили {A} {item}, но раздали {B} от тях на гостите. Колко {item} са останали?",
+            "В коша имало {A} {item}. По време на игра децата изгубили {B} от тях. Колко {item} са останали?"
+        ];
+
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Логика за генериране
+        function generateWordProblems() {
+            const maxRange = parseInt(document.getElementById('gen-range').value);
+
+            for (let i = 0; i < totalProblems; i++) {
+                let A, B;
+                let text = "";
+                let item = getRandomElement(items);
+                
+                // Редуваме събиране и изваждане за разнообразие
+                if (i % 2 === 0) {
+                    // Събиране
+                    A = Math.floor(Math.random() * (maxRange - 3)) + 2; // Минимум 2
+                    B = Math.floor(Math.random() * (maxRange - A - 1)) + 2; 
+                    let tpl = getRandomElement(templatesAdd);
+                    text = tpl.replace("{A}", A).replace("{B}", B).replaceAll("{item}", item);
+                } else {
+                    // Изваждане
+                    A = Math.floor(Math.random() * (maxRange - 5)) + 5; // Минимум 5 общо
+                    B = Math.floor(Math.random() * (A - 2)) + 2; // Вземат минимум 2
+                    let tpl = getRandomElement(templatesSub);
+                    text = tpl.replace("{A}", A).replace("{B}", B).replaceAll("{item}", item);
+                }
+
+                document.getElementById(`input-${i}`).value = text;
+            }
+            renderPaper();
+        }
+
+        // Логика за рисуване на листа
+        function renderPaper() {
+            const container = document.getElementById('problems-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < totalProblems; i++) {
+                const text = document.getElementById(`input-${i}`).value;
+                
+                const problemBox = document.createElement('div');
+                problemBox.className = 'problem-box';
+                
+                // Добавяме номера на задачата и самия текст
+                problemBox.innerHTML = `
+                    <div class="problem-text">${i + 1}. ${text || '...................................................'}</div>
+                    <div class="solution-grid"></div>
+                `;
+                
+                container.appendChild(problemBox);
+            }
+        }
+
+        // Генерираме задачи при първо зареждане
+        generateWordProblems();
+
+    </script>
+</body>
+</html>

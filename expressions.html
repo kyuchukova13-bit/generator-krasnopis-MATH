@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Тетрадка по Математика: Изрази</title>
+    <style>
+        @font-face {
+            font-family: 'BoyanMaga';
+            src: url('Boyan_Maga-Regular.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+
+        body { 
+            background: #e9ecef; margin: 0; padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; display: flex; gap: 20px;
+            height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+
+        /* СТРАНИЧНО МЕНЮ */
+        #sidebar {
+            width: 320px; background: white; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow-y: auto; flex-shrink: 0;
+        }
+
+        .tool-header {
+            font-weight: bold; color: #00838f; font-size: 1.1rem;
+            margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #b2ebf2; padding-bottom: 10px;
+        }
+
+        .auto-gen-control {
+            background: #e0f7fa; padding: 12px; border-radius: 8px; border: 1px solid #80deea; margin-bottom: 15px;
+        }
+        .auto-gen-control label { 
+            font-size: 0.9rem; color: #006064; font-weight: bold; display: block; margin-bottom: 8px; 
+        }
+        .auto-gen-control select {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 15px; font-family: inherit; font-size: 14px;
+        }
+        
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #333; }
+        
+        .generate-btn {
+            padding: 12px; background: #00acc1; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: background 0.2s;
+        }
+        .generate-btn:hover { background: #00838f; }
+
+        .print-btn {
+            padding: 12px; background: #4facfe; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-bottom: 15px;
+        }
+
+        .input-group { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .input-group label { font-size: 12px; color: #777; width: 40px; font-weight: bold; }
+        .task-input {
+            flex-grow: 1; height: 32px; border: 2px solid #dcdfe6; border-radius: 6px;
+            padding: 0 10px; font-size: 15px; outline: none; font-family: monospace; letter-spacing: 1px;
+        }
+        .task-input:focus { border-color: #00acc1; }
+
+        /* ЗОНА ЗА ЛИСТА */
+        #paper-wrapper { flex-grow: 1; overflow-y: auto; display: flex; justify-content: center; }
+
+        #paper {
+            width: 210mm; min-height: 297mm; background: white;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .worksheet-title {
+            text-align: center; font-size: 24px; color: #00838f; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        header { 
+            margin-bottom: 25px; font-size: 15px; 
+            display: flex; gap: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; 
+        }
+
+        /* ДИЗАЙН НА ЗАДАЧИТЕ В МРЕЖАТА */
+        #expressions-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Разстояние между отделните задачи */
+        }
+
+        .solution-grid {
+            width: 666px; /* 19 колонки */
+            height: 106px; /* 3 реда по 35px + 1px рамка */
+            background-image: 
+                linear-gradient(to right, #81d4fa 1px, transparent 1px),
+                linear-gradient(to bottom, #81d4fa 1px, transparent 1px);
+            background-size: 35px 35px;
+            border: 1px solid #81d4fa;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .grid-char {
+            position: absolute; width: 35px; text-align: center;
+            font-family: 'BoyanMaga', cursive; font-size: 30px; 
+            color: #1a237e; line-height: 1; pointer-events: none;
+        }
+
+        /* СИСТЕМА ЗА ОЦЕНКА */
+        .evaluation-footer { margin-top: auto; padding-top: 15px; text-align: center; border-top: 2px dashed #f0f0f0; }
+        .eval-text { font-size: 15px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        
+        .emoji-scale { display: flex; justify-content: center; gap: 40px; }
+        .emoji-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .emoji-icon { font-size: 40px; line-height: 1; }
+        .emoji-label { font-size: 12px; color: #777; font-weight: bold; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; margin: 0; padding: 0; display: block; overflow: visible; }
+            #sidebar { display: none !important; }
+            #paper-wrapper { overflow: visible; display: block; }
+            #paper { box-shadow: none; margin: 0; border: none; padding: 15mm; width: 210mm; height: 297mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <button class="print-btn" onclick="window.print()">🖨️ ПЕЧАТ</button>
+
+        <div class="tool-header">🔢 ИЗРАЗИ</div>
+        <div class="auto-gen-control">
+            <label>Ниво (числа до):</label>
+            <select id="gen-range">
+                <option value="10">До 10</option>
+                <option value="20" selected>До 20</option>
+                <option value="100">До 100</option>
+            </select>
+            
+            <label>Вид задачи:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="gen-noparen" checked> Без скоби (напр. 5+3-2)</label>
+                <label><input type="checkbox" id="gen-paren" checked> Със скоби (напр. 10-(3+2))</label>
+            </div>
+            
+            <button class="generate-btn" onclick="generateExpressions()">⚡ ГЕНЕРИРАЙ ИЗРАЗИ</button>
+        </div>
+
+        <div style="font-size: 13px; color: #00838f; margin-bottom: 10px; font-weight: bold;">📝 Ръчна настройка (↕️ <input type="range" min="-10" max="20" value="2" id="v-slider" style="width: 60px; vertical-align: middle;" oninput="renderPaper()">):</div>
+        <div id="inputs-container">
+            </div>
+    </div>
+
+    <div id="paper-wrapper">
+        <div id="paper">
+            <h1 class="worksheet-title">Пресмятане на числови изрази</h1>
+            
+            <header>
+                <span style="flex:1;">✍️ <b>Ученик:</b> _________________________________</span>
+                <span>📅 <b>Дата:</b> ______________</span>
+            </header>
+
+            <div id="expressions-container">
+                </div>
+
+            <footer class="evaluation-footer">
+                <div class="eval-text">Огради как се справи със задачите:</div>
+                <div class="emoji-scale">
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤩</span>
+                        <span class="emoji-label">Беше ми лесно!</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🙂</span>
+                        <span class="emoji-label">Справих се добре.</span>
+                    </div>
+                    <div class="emoji-item">
+                        <span class="emoji-icon">🤔</span>
+                        <span class="emoji-label">Трябва ми упражнение.</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const totalProblems = 6; 
+        const inputsContainer = document.getElementById('inputs-container');
+        
+        for (let i = 0; i < totalProblems; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <label>Ред ${i + 1}</label>
+                <input type="text" class="task-input" id="input-${i}" placeholder="напр. 15-(5+3)=" oninput="renderPaper()">
+            `;
+            inputsContainer.appendChild(div);
+        }
+
+        // Логика за генериране на интелигентни изрази
+        function generateExpressions() {
+            const range = parseInt(document.getElementById('gen-range').value);
+            const useNoParen = document.getElementById('gen-noparen').checked;
+            const useParen = document.getElementById('gen-paren').checked;
+
+            if (!useNoParen && !useParen) {
+                alert("Моля, избери поне един вид задачи!");
+                return;
+            }
+
+            for (let i = 0; i < totalProblems; i++) {
+                let expr = "";
+                let attempts = 0;
+                let valid = false;
+
+                while (!valid && attempts < 100) {
+                    attempts++;
+                    let A = Math.floor(Math.random() * range) + 1;
+                    let B = Math.floor(Math.random() * range) + 1;
+                    let C = Math.floor(Math.random() * range) + 1;
+
+                    let patterns = [];
+                    if (useNoParen) patterns.push(0, 1, 2, 3); // Без скоби
+                    if (useParen) patterns.push(4, 5); // Със скоби
+
+                    let p = patterns[Math.floor(Math.random() * patterns.length)];
+
+                    if (p === 0 && A+B <= range && A+B+C <= range) { expr = `${A}+${B}+${C}=`; valid = true; } // A+B+C
+                    else if (p === 1 && A+B <= range && A+B-C >= 0) { expr = `${A}+${B}-${C}=`; valid = true; } // A+B-C
+                    else if (p === 2 && A-B >= 0 && A-B+C <= range) { expr = `${A}-${B}+${C}=`; valid = true; } // A-B+C
+                    else if (p === 3 && A-B >= 0 && A-B-C >= 0) { expr = `${A}-${B}-${C}=`; valid = true; } // A-B-C
+                    else if (p === 4 && B+C <= range && A-(B+C) >= 0) { expr = `${A}-(${B}+${C})=`; valid = true; } // A-(B+C)
+                    else if (p === 5 && B-C >= 0 && A+(B-C) <= range) { expr = `${A}+(${B}-${C})=`; valid = true; } // A+(B-C)
+                }
+
+                document.getElementById(`input-${i}`).value = expr || "10-2-1=";
+            }
+            
+            renderPaper();
+        }
+
+        // Рисуване на изразите вътре в квадратната мрежа
+        function renderPaper() {
+            const container = document.getElementById('expressions-container');
+            container.innerHTML = '';
+            const vOffset = parseInt(document.getElementById('v-slider').value);
+
+            for (let i = 0; i < totalProblems; i++) {
+                // Вземаме текста и премахваме всички интервали, за да пасне перфектно в мрежата
+                const text = document.getElementById(`input-${i}`).value.replace(/\\s+/g, '');
+                
+                const gridBox = document.createElement('div');
+                gridBox.className = 'solution-grid';
+
+                let colPos = 0;
+                for(let char of text) {
+                    if (colPos > 18) break; // Защита: мрежата побира 19 символа
+                    
+                    const span = document.createElement('span');
+                    span.className = 'grid-char';
+                    span.innerText = char;
+                    span.style.left = (colPos * 35) + 'px';
+                    span.style.top = vOffset + 'px'; // Винаги се изписва на първия ред от мрежата
+                    
+                    gridBox.appendChild(span);
+                    colPos++;
+                }
+                
+                container.appendChild(gridBox);
+            }
+        }
+
+        // Генерираме стартов вариант
+        generateExpressions();
+
+    </script>
+</body>
+</html>
